@@ -1,45 +1,37 @@
 import {
   Controller,
-  Get,
   Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import { readFileSync } from 'fs';
+import { remove } from 'fs-extra';
+import * as pdfParser from 'pdf-parse';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AppService } from '../services/app.service';
-import { PDFExtract, PDFExtractOptions } from 'pdf.js-extract';
-import { LinkedInProfileScraper } from 'linkedin-profile-scraper';
-
-import * as linke from 'linkedin-public-profile-parser';
 import { CatchDataService } from 'src/services/catchData.service';
+import { UserModel } from 'src/models/user.model';
+import { DynamoService } from 'src/services/dynamo.service';
+const FOLDER = 'temp';
 
-const scraper = new LinkedInProfileScraper({
-  sessionCookieValue: 'LI_AT_COOKIE_VALUE',
-  keepAlive: false,
-});
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
     private readonly catchData: CatchDataService,
+    private readonly dynamo: DynamoService,
   ) {}
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file', { dest: 'test' }))
-  async get_pdf(@UploadedFile() file: Express.Multer.File): Promise<any> {
-    await scraper.setup();
-    const result = await scraper.run(
-      'https://www.linkedin.com/in/jvandenaardweg/',
-    );
-    console.log(result)
-
-    // const pdfExtract = new PDFExtract();
-    // const pdf = await pdfExtract.extract(file.path);
-    // const content = pdf.pages.map((item) => {
-    //   return item.content.map((text) => {
-    //     return text.str;
-    //   });
-    // });
-    // console.log(content);
-    // this.catchData.getData(content);
+  @UseInterceptors(FileInterceptor('file', { dest: FOLDER }))
+  async get_pdf(@UploadedFile() file: Express.Multer.File): Promise<object> {
+    let text, res: UserModel;
+    const pdfData = readFileSync(file.path);
+    pdfParser(pdfData).then((pdf) => {
+      text = pdf.text;
+      res = this.catchData.getData(text);
+    });
+    await remove(file.path);
+    await this.dynamo.insertData(res);
+    return { message: 'The information has been processed' };
   }
 }

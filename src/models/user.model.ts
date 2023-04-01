@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 
 export class UserModel {
   @IsNotEmpty()
@@ -11,13 +11,13 @@ export class UserModel {
 
   @IsNotEmpty()
   @IsString()
-  languages!: string;
+  education!: string;
 
   @IsNotEmpty()
-  @IsString()
-  mainSkills!: string;
+  @IsArray()
+  mainSkills!: string[];
 
   @IsNotEmpty()
-  @IsString()
-  email!: string;
+  @IsArray()
+  contact!: string[];
 }
