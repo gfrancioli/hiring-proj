@@ -40,8 +40,13 @@ export class AppController {
     return await this.dynamo.getBySkills(data.skill);
   }
 
-  @Get('link')
-  async getPageData(@Query() data: { link: string }): Promise<any> {
-    return;
+  @Get('profile')
+  async getByUrl(@Query() data: { url: string }): Promise<any> {
+    return await this.dynamo.getByProfileUrl(data.url);
+  }
+
+  @Get('all')
+  async getByAllFields(@Query() data: { word: string }): Promise<any> {
+    return await this.dynamo.getByAllFields(data.word);
   }
 }

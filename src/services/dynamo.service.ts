@@ -20,4 +20,27 @@ export class DynamoService {
     };
     return await dynamo.scan(params).promise();
   }
+
+  async getByProfileUrl(profile: string): Promise<DynamoDB.ScanOutput> {
+    const params = {
+      TableName: TABLENAME,
+      FilterExpression: 'contains (linkedinUrl, :profile)',
+      ExpressionAttributeValues: {
+        ':profile': profile,
+      },
+    };
+    return await dynamo.scan(params).promise();
+  }
+
+  async getByAllFields(text: string): Promise<DynamoDB.ScanOutput> {
+    const params = {
+      TableName: TABLENAME,
+      FilterExpression:
+        'contains(experience, :profile) or contains(education, :profile)',
+      ExpressionAttributeValues: {
+        ':profile': text,
+      },
+    };
+    return await dynamo.scan(params).promise();
+  }
 }
