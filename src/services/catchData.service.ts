@@ -38,8 +38,9 @@ export class CatchDataService {
 
   getSkills(data: string): string[] {
     const regex = /Top Skills\n([\s\S]*?)\n(?:\n|$){3}/m;
-    const res = this.matchRegex(regex, data);
-    return res.slice(0, 3);
+    const res = this.matchRegex(regex, data).slice(0, 3);
+    const resLower = res.map((item) => item.toLowerCase());
+    return resLower;
   }
 
   getExperiences(data: string): string {
