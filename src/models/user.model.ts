@@ -21,3 +21,25 @@ export class UserModel {
   @IsArray()
   contact!: string[];
 }
+
+export class UserModelGPT {
+  @IsNotEmpty()
+  @IsString()
+  linkedinUrl!: string;
+
+  @IsNotEmpty()
+  @IsString()
+  experience!: object[];
+
+  @IsNotEmpty()
+  @IsString()
+  education!: object[];
+
+  @IsNotEmpty()
+  @IsArray()
+  mainSkills!: string[];
+
+  @IsNotEmpty()
+  @IsArray()
+  contact!: object;
+}

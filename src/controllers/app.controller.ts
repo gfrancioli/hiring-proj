@@ -15,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CatchDataService } from 'src/services/catchData.service';
 import { DynamoService } from 'src/services/dynamo.service';
 import { ApiBody, ApiConsumes, ApiQuery } from '@nestjs/swagger';
+import { ChatGPTService } from 'src/services/chatgpt.service';
 const FOLDER = 'temp';
 
 @Controller()
@@ -22,6 +23,7 @@ export class AppController {
   constructor(
     private readonly catchData: CatchDataService,
     private readonly dynamo: DynamoService,
+    private chatGPTService: ChatGPTService,
   ) {}
 
   @Post('upload')
@@ -47,6 +49,33 @@ export class AppController {
     const text = pdf.text;
     await remove(file.path);
     const res = await this.catchData.getData(text);
+    await this.dynamo.insertData(res);
+    return { message: 'The information has been processed' };
+  }
+
+  @Post('uploadgpt')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+    required: true,
+  })
+  @UseInterceptors(FileInterceptor('file', { dest: FOLDER }))
+  async getPdfgpt(@UploadedFile() file: Express.Multer.File): Promise<object> {
+    if (!file)
+      throw new HttpException('File not inserted', HttpStatus.BAD_REQUEST);
+    const pdfData = readFileSync(file.path);
+    const pdf = await pdfParser(pdfData);
+    const text = pdf.text;
+    await remove(file.path);
+    const res = await this.chatGPTService.getResponse(text);
     await this.dynamo.insertData(res);
     return { message: 'The information has been processed' };
   }

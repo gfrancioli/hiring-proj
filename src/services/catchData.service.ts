@@ -10,7 +10,6 @@ export class CatchDataService {
       const linkedinUrl = this.getLinkedinUrl(data);
       const experience = this.getExperiences(data);
       const education = this.getEducation(data);
-
       const newData: UserModel = {
         linkedinUrl,
         mainSkills: skills,
@@ -18,9 +17,9 @@ export class CatchDataService {
         experience,
         education,
       };
-
       return newData;
     } catch (error) {
+      console.log(error);
       throw new HttpException(
         'Error retrieving data from pdf',
         HttpStatus.BAD_REQUEST,
