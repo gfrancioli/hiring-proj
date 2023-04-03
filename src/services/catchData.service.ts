@@ -1,24 +1,31 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UserModel } from 'src/models/user.model';
 
 @Injectable()
 export class CatchDataService {
-  getData(data: string): UserModel {
-    const skills = this.getSkills(data);
-    const contact = this.getContact(data);
-    const linkedinUrl = this.getLinkedinUrl(data);
-    const experience = this.getExperiences(data);
-    const education = this.getEducation(data);
+  async getData(data: string): Promise<UserModel> {
+    try {
+      const skills = this.getSkills(data);
+      const contact = this.getContact(data);
+      const linkedinUrl = this.getLinkedinUrl(data);
+      const experience = this.getExperiences(data);
+      const education = this.getEducation(data);
 
-    const newData: UserModel = {
-      linkedinUrl,
-      mainSkills: skills,
-      contact,
-      experience,
-      education,
-    };
+      const newData: UserModel = {
+        linkedinUrl,
+        mainSkills: skills,
+        contact,
+        experience,
+        education,
+      };
 
-    return newData;
+      return newData;
+    } catch (error) {
+      throw new HttpException(
+        'Error retrieving data from pdf',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   getContact(data: string): string[] {

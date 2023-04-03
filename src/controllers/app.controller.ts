@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  HttpException,
+  HttpStatus,
   Post,
   Query,
   UploadedFile,
@@ -11,8 +13,8 @@ import { remove } from 'fs-extra';
 import * as pdfParser from 'pdf-parse';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CatchDataService } from 'src/services/catchData.service';
-import { UserModel } from 'src/models/user.model';
 import { DynamoService } from 'src/services/dynamo.service';
+import { ApiBody, ApiConsumes, ApiQuery } from '@nestjs/swagger';
 const FOLDER = 'temp';
 
 @Controller()
@@ -21,30 +23,56 @@ export class AppController {
     private readonly catchData: CatchDataService,
     private readonly dynamo: DynamoService,
   ) {}
+
   @Post('upload')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+    required: true,
+  })
   @UseInterceptors(FileInterceptor('file', { dest: FOLDER }))
   async getPdf(@UploadedFile() file: Express.Multer.File): Promise<object> {
-    let text: string, res: UserModel;
+    if (!file)
+      throw new HttpException('File not inserted', HttpStatus.BAD_REQUEST);
     const pdfData = readFileSync(file.path);
-    pdfParser(pdfData).then((pdf) => {
-      text = pdf.text;
-      res = this.catchData.getData(text);
-    });
+    const pdf = await pdfParser(pdfData);
+    const text = pdf.text;
     await remove(file.path);
+    const res = await this.catchData.getData(text);
     await this.dynamo.insertData(res);
     return { message: 'The information has been processed' };
   }
 
+  @ApiQuery({
+    name: 'skill',
+    required: true,
+  })
   @Get('skills')
   async getSkill(@Query() data: { skill: string }): Promise<any> {
     return await this.dynamo.getBySkills(data.skill);
   }
 
+  @ApiQuery({
+    name: 'profile',
+    required: true,
+  })
   @Get('profile')
-  async getByUrl(@Query() data: { url: string }): Promise<any> {
-    return await this.dynamo.getByProfileUrl(data.url);
+  async getByUrl(@Query() data: { profile: string }): Promise<any> {
+    return await this.dynamo.getByProfileUrl(data.profile);
   }
 
+  @ApiQuery({
+    name: 'word',
+    required: true,
+  })
   @Get('all')
   async getByAllFields(@Query() data: { word: string }): Promise<any> {
     return await this.dynamo.getByAllFields(data.word);

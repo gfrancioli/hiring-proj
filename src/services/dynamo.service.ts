@@ -36,7 +36,7 @@ export class DynamoService {
     const params = {
       TableName: TABLENAME,
       FilterExpression:
-        'contains(experience, :profile) or contains(education, :profile)',
+        'contains (mainSkills, :profile) or contains(experience, :profile) or contains(education, :profile)',
       ExpressionAttributeValues: {
         ':profile': text,
       },
