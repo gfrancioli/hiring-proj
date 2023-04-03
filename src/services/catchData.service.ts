@@ -19,7 +19,6 @@ export class CatchDataService {
       };
       return newData;
     } catch (error) {
-      console.log(error);
       throw new HttpException(
         'Error retrieving data from pdf',
         HttpStatus.BAD_REQUEST,

@@ -9,8 +9,8 @@ export class ChatGPTService {
 
   constructor() {
     const configuration = new Configuration({
-      apiKey: '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',
-      organization: 'org-UMNFIfdtDx43VhTgDu5fJuw4',
+      apiKey: 'APIKEY',
+      organization: `ORGANIZATIONID`,
     });
     this.openai = new OpenAIApi(configuration);
   }
@@ -28,7 +28,7 @@ export class ChatGPTService {
       if (data.choices.length) return data.choices;
       return response.data;
     } catch (error) {
-      console.log(error.data);
+      console.log(error);
     }
   }
 
@@ -42,7 +42,6 @@ export class ChatGPTService {
       );
       const regex = /^[^{]*/;
       const match = res[0].text.replace(regex, '');
-      // console.log(match);
       const document = JSON.parse(JSON.parse(JSON.stringify(match).trim()));
       const data: UserModelGPT = {
         linkedinUrl: document['contact']?.linkedin
@@ -59,7 +58,7 @@ export class ChatGPTService {
         mainSkills: document['skills'] ? [...document['skills']] : [],
         education: document['education']?.map((item) => {
           return {
-            degree: item.degree,
+            degree: item.field,
             school: item.school,
           };
         }),
